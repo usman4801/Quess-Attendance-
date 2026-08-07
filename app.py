@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 
 st.set_page_config(
@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# ADVANCED UI STYLING & HIDING STREAMLIT BRANDING
+# ADVANCED UI STYLING & HIDING BRANDING
 # ==========================================
 st.markdown(
     """
@@ -37,6 +37,10 @@ st.markdown(
         border: 2px solid #3b82f6;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
         margin-bottom: 25px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
     }
 
     .metric-container {
@@ -64,57 +68,42 @@ st.markdown("<p style='text-align: center; color: #4b5563; font-size: 18px;'>Mon
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# STYLIZED CALENDAR CONTAINER WITH BORDER
+# CALENDAR SELECTION CONTAINER
 # ==========================================
 st.markdown('<div class="calendar-card">', unsafe_allow_html=True)
-col_cal, col_up = st.columns([1, 1])
-
-with col_cal:
-    st.markdown("### 📅 Select Date Range / Target")
-    selected_date = st.date_input(
-        "Choose Attendance Date",
-        value=datetime(2026, 8, 1).date(),
-        label_visibility="collapsed"
-    )
-
-with col_up:
-    st.markdown("### 📁 Quick File Backup Upload")
-    uploaded_fallback_file = st.file_uploader("Upload Excel if auto-fetch fails", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
-
+st.markdown("### 📅 Select Attendance Date")
+selected_date = st.date_input(
+    "Choose Attendance Date",
+    value=datetime(2026, 8, 1).date(),
+    label_visibility="collapsed"
+)
 st.markdown('</div>', unsafe_allow_html=True)
 
 date_str = selected_date.strftime("%Y-%m-%d")
 
 # Target file detection logic
-target_df = None
+possible_files = [
+    f"{date_str}.xlsx",
+    f"{selected_date.strftime('%d%m%Y')}.xlsx",
+    "2026-08-01.xlsx",
+    "DWD-AUH1-01082026 (1).xlsx"  # Fallback sample file
+]
 
-if uploaded_fallback_file is not None:
+target_df = None
+found_path = None
+
+for f in possible_files:
+    if os.path.exists(f):
+        found_path = f
+        break
+
+if found_path:
     try:
-        target_df = pd.read_excel(uploaded_fallback_file, sheet_name=0, dtype=str)
-    except:
-        target_df = pd.read_csv(uploaded_fallback_file, dtype=str)
-else:
-    # Check multiple possible naming formats in repository
-    possible_files = [
-        f"{date_str}.xlsx",
-        f"{selected_date.strftime('%d%m%Y')}.xlsx",
-        "DWD-AUH1-01082026 (1).xlsx",
-        "attendance.xlsx"
-    ]
-    
-    found_path = None
-    for f in possible_files:
-        if os.path.exists(f):
-            found_path = f
-            break
-            
-    if found_path:
-        try:
-            xls = pd.ExcelFile(found_path)
-            sheet_name = 'Roster' if 'Roster' in xls.sheet_names else 0
-            target_df = pd.read_excel(found_path, sheet_name=sheet_name, dtype=str)
-        except Exception as e:
-            st.error(f"Error loading file: {e}")
+        xls = pd.ExcelFile(found_path)
+        sheet_name = 'Roster' if 'Roster' in xls.sheet_names else 0
+        target_df = pd.read_excel(found_path, sheet_name=sheet_name, dtype=str)
+    except Exception as e:
+        st.error(f"Error loading file: {e}")
 
 if target_df is not None and not target_df.empty:
     target_df.columns = [str(c).strip() for c in target_df.columns.tolist()]
@@ -134,7 +123,7 @@ if target_df is not None and not target_df.empty:
     st.markdown("<br>", unsafe_allow_html=True)
     
     # ==========================================
-    # 4 METRIC TILES WITH EMOJIS & GRADIENTS
+    # 4 METRIC TILES
     # ==========================================
     t1, t2, t3, t4 = st.columns(4)
     
@@ -184,4 +173,4 @@ if target_df is not None and not target_df.empty:
     st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 else:
-    st.warning(f"⚠️ No attendance file found automatically for **{date_str}**. Please upload your Excel file using the box above inside the calendar container to view live metrics!")
+    st.warning(f"⚠️ No attendance file found for **{date_str}**. Make sure your Excel file is uploaded in your GitHub repository.")
