@@ -194,6 +194,10 @@ if target_df is not None and not target_df.empty:
     # ==========================================
     display_df = target_df.copy()
     
+    # 👉 NAYA CODE: Yahan table ke sab se shuru mein 'Date' ka column add kar diya gaya hai
+    formatted_display_date = selected_date.strftime('%d-%b-%Y')
+    display_df.insert(0, 'Date', formatted_display_date)
+    
     # Apply View Filter
     if st.session_state.view_filter != 'ALL':
         display_df = display_df[display_df[att_col] == st.session_state.view_filter]
