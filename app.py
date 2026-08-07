@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 st.set_page_config(
-    page_title="Quess Corp Attendance Intelligence", 
+    page_title="Quesscorp Attendance Intelligence", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -69,7 +69,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("<h1 style='text-align: center; color: #1e3a8a; font-family: sans-serif; font-weight: 800;'>📊 Quess Corp - Daily Attendance Intelligence Portal 🚀</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #1e3a8a; font-family: sans-serif; font-weight: 800;'>📊 Quesscorp - Daily Attendance Intelligence Portal 🚀</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #4b5563; font-size: 18px;'>Monitor daily workforce performance, leaves, and attendance seamlessly.</p>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -194,7 +194,7 @@ if target_df is not None and not target_df.empty:
     # ==========================================
     display_df = target_df.copy()
     
-    # 👉 NAYA CODE: Yahan table ke sab se shuru mein 'Date' ka column add kar diya gaya hai
+    # Insert Date Column
     formatted_display_date = selected_date.strftime('%d-%b-%Y')
     display_df.insert(0, 'Date', formatted_display_date)
     
@@ -220,6 +220,25 @@ if target_df is not None and not target_df.empty:
         display_df = display_df[mask]
 
     st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+    # ==========================================
+    # DOWNLOAD BUTTON
+    # ==========================================
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Convert dataframe to CSV format
+    csv_data = display_df.to_csv(index=False).encode('utf-8')
+    
+    # Center the download button
+    d_col1, d_col2, d_col3 = st.columns([1, 2, 1])
+    with d_col2:
+        st.download_button(
+            label="📥 Download Data as CSV",
+            data=csv_data,
+            file_name=f"Quesscorp_Attendance_{date_str}.csv",
+            mime='text/csv',
+            use_container_width=True
+        )
 
 else:
     st.warning(f"⚠️ No attendance file found for **{date_str}**. Make sure your Excel file is uploaded in your GitHub repository.")
