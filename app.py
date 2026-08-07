@@ -81,12 +81,13 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 date_str = selected_date.strftime("%Y-%m-%d")
 
-# Target file detection logic
+# Target file detection logic (Added support for double .xlsx error)
 possible_files = [
     f"{date_str}.xlsx",
+    f"{date_str}.xlsx.xlsx", # Catching the double extension error automatically
     f"{selected_date.strftime('%d%m%Y')}.xlsx",
     "2026-08-01.xlsx",
-    "DWD-AUH1-01082026 (1).xlsx"  # Fallback sample file
+    "2026-08-01.xlsx.xlsx"
 ]
 
 target_df = None
